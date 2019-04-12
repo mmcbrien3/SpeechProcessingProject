@@ -1,0 +1,32 @@
+Things to do:
+
+Project:
+    Collect Data:
+        Pure Speech X
+        Music
+        Speech + Other
+        Background Noise
+        Silence
+
+    Convert Data to frames/subframes X
+
+    Extract Features:
+        Energy X
+        Zero Crossing Rate X
+        MFCC
+        Brightness
+        Bandwidth
+        Pitched Ratio
+        Spectrum Flux
+        Low-Order LPCs
+        Others
+
+    Save Classifier so retraining is not required
+
+    Test Classifier:
+        Choose a few mixed files to test on (audio of newscast could work well)
+        Plot results (play audio and display result of classifier simultaneously)
+
+
+Presentation:
+    Make Presentation
