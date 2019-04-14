@@ -69,7 +69,7 @@ if __name__ == "__main__":
     extractor = FeatureExtractor()
 
     tts = 0.8
-    max_data = 1000
+    max_data = 100
     num_classes = 3
     all_x_train = [""] * num_classes
     all_y_train = [""] * num_classes
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     print(x_train)
     print(y_test)
     rf = RandomForestClassifier(n_estimators=1000)
-    rf.fit(x_train, y_train)
+    rf.fit(x_train, y_train.flatten())
 
     fhT = FileHandler(".\\SpeechFolder\\TEST")
     fhT.set_file_extensions((".wav"))

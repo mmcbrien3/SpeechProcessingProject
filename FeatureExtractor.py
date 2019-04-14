@@ -4,7 +4,7 @@ import scipy as sp
 
 class FeatureExtractor(object):
 
-    tot_features = 2 * 2 + 12 * 2
+    tot_features = 3 * 2 + 12 * 2
     def __init__(self):
         pass
 
@@ -24,6 +24,7 @@ class FeatureExtractor(object):
         features.extend(self.get_energy(subclips))
         features.extend(self.get_zero_crossing(subclips))
         features.extend(self.get_mel_freq_cepstral_coeffs(subclips))
+        features.extend(self.get_spectral_centroid(subclips))
         return features
 
     def get_energy(self, subclips):
@@ -43,6 +44,19 @@ class FeatureExtractor(object):
             count = count + 1
 
         return [np.mean(zcs), np.std(zcs)]
+
+    def get_spectral_centroid(self, subclips):
+        scs = np.zeros(len(subclips))
+        count = 0
+        sr = 8000
+        for sc in subclips:
+            mags = np.abs(np.fft.rfft(sc))
+            length = len(sc)
+            freqs = np.abs(np.fft.fftfreq(length, 1.0 / sr)[:length // 2 + 1])
+            scs[count] = np.sum(mags * freqs) / np.sum(mags)
+            count += 1
+
+        return [np.mean(scs), np.std(scs)]
 
     def get_mel_freq_cepstral_coeffs(self, subclips):
         mfccs = []
