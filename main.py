@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
 import sys, os
 from matplotlib import pyplot as plt
-types = ["pure_speech", "music", "noise", "impure_speech"]
+types = ["pure_speech", "music", "noise", "impure_speech", "silence"]
 #get all file names
 #create list of file names for training and testing
 
@@ -70,8 +70,8 @@ if __name__ == "__main__":
     extractor = FeatureExtractor()
 
     tts = 0.8
-    max_data = 100
-    num_classes = 4
+    max_data = 1000
+    num_classes = 5
     all_x_train = [""] * num_classes
     all_y_train = [""] * num_classes
     all_x_test = [""] * num_classes
@@ -87,6 +87,9 @@ if __name__ == "__main__":
                                                                                         tts, max_data, (".wav"))
 
     all_x_train[3], all_y_train[3], all_x_test[3], all_y_test[3] = get_data_from_folder(".\\SpeechFolder\\ImpureSpeech", types[3],
+                                                                                        tts, max_data, (".wav"))
+
+    all_x_train[4], all_y_train[4], all_x_test[4], all_y_test[4] = get_data_from_folder(".\\SpeechFolder\\Silence", types[4],
                                                                                         tts, max_data, (".wav"))
     x_train = np.empty((0, extractor.tot_features), float)
     y_train = np.empty((0, 1), str)
@@ -115,7 +118,11 @@ if __name__ == "__main__":
     sc = rf.score(x_test, y_test.flatten())
     print("Accuracy: %f" % sc)
 
-    cf = confusion_matrix(y_test, pred, labels=['p', 'm', 'n', 'i'], )
+    cf = confusion_matrix(y_test, pred, labels=['p', 'm', 'n', 'i', 's'], )
+    print(cf)
+    cf = np.asarray(cf, dtype="float32")
+    for i in range(len(types)):
+        cf[i, :] = cf[i, :]/np.sum(cf, axis=1)[i]
     print(cf)
 
 
