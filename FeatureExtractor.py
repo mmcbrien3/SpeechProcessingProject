@@ -1,9 +1,10 @@
 import soundfile
 import numpy as np
+import scipy as sp
 
 class FeatureExtractor(object):
 
-    tot_features = 2 * 2
+    tot_features = 2 * 2 + 12 * 2
     def __init__(self):
         pass
 
@@ -55,16 +56,18 @@ class FeatureExtractor(object):
             cepstral_coeff = sp.fftpack.dct(log_energies, norm='ortho')
             mfcc = cepstral_coeff[:12]
             mfccs.append(mfcc)
-        return mfccs
+        ms = np.mean(mfccs, axis=0)
+        stds = np.std(mfccs, axis=0)
+        return np.concatenate((ms, stds))
 
     def compute_filterbank(self, nfft=512, nfilt=26):
         lowmel = self.convert_freq_to_mel(0)
-        highmel = self.convert_freq_to_mel(sr/2)
+        highmel = self.convert_freq_to_mel(8000/2)
 
         melpoints = np.linspace(lowmel,highmel,nfilt+2)
         # our points are in Hz, but we use fft bins, so we have to convert
         #  from Hz to fft bin number
-        bin_number = np.floor((nfft+1)*self.convert_mel_to_freq(melpoints)/sr)
+        bin_number = np.floor((nfft+1)*self.convert_mel_to_freq(melpoints)/8000)
 
         fbank = np.zeros([nfilt,nfft//2+1])
         for j in range(0,nfilt):

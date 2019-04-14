@@ -53,6 +53,8 @@ class FileHandler(object):
         raw = self.resample(audiofile, self.sr)
         num_clips = int(np.floor(len(raw)/self.sr))
         clips = np.zeros((num_clips, self.sr))
+        if len(raw.shape) > 1:
+            raw = raw[:, 0]
         for i in range(num_clips):
             clips[i][:] = raw[i*self.sr:(i+1)*self.sr]
         return clips
