@@ -2,9 +2,10 @@ from FileHandler import FileHandler
 from FeatureExtractor import FeatureExtractor
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import confusion_matrix
 import sys, os
 from matplotlib import pyplot as plt
-types = ["pure_speech", "music"]
+types = ["pure_speech", "music", "noise", "impure_speech"]
 #get all file names
 #create list of file names for training and testing
 
@@ -18,9 +19,9 @@ def get_data_from_folder(folder, classification, train_p, total_amount, valid_ex
     max_test = round(total_amount * (1-train_p))
 
     x_train = np.empty((max_train, extractor.tot_features), float)
-    y_train = np.empty((max_train, 1), float)
+    y_train = np.empty((max_train, 1), str)
     x_test = np.empty((max_test, extractor.tot_features), float)
-    y_test = np.empty((max_test, 1), float)
+    y_test = np.empty((max_test, 1), str)
     print("Begin %s" % (classification))
     fhandler = FileHandler(folder, training_percent=train_p)
     fhandler.set_file_extensions(valid_ext)
@@ -70,24 +71,27 @@ if __name__ == "__main__":
 
     tts = 0.8
     max_data = 100
-    num_classes = 3
+    num_classes = 4
     all_x_train = [""] * num_classes
     all_y_train = [""] * num_classes
     all_x_test = [""] * num_classes
     all_y_test = [""] * num_classes
     
-    all_x_train[0], all_y_train[0], all_x_test[0], all_y_test[0] = get_data_from_folder(".\\SpeechFolder\\PureSpeech", 0,
-                                                            tts, max_data, (".wav"))
+    all_x_train[0], all_y_train[0], all_x_test[0], all_y_test[0] = get_data_from_folder(".\\SpeechFolder\\PureSpeech", types[0],
+                                                                                        tts, max_data, (".wav"))
 
-    all_x_train[1], all_y_train[1], all_x_test[1], all_y_test[1] = get_data_from_folder(".\\SpeechFolder\\Music", 1,
-                                                            tts, max_data, (".wav"))
+    all_x_train[1], all_y_train[1], all_x_test[1], all_y_test[1] = get_data_from_folder(".\\SpeechFolder\\Music", types[1],
+                                                                                        tts, max_data, (".wav"))
 
-    all_x_train[2], all_y_train[2], all_x_test[2], all_y_test[2] = get_data_from_folder(".\\SpeechFolder\\Noise", 2,
-                                                                    tts, max_data, (".wav"))
+    all_x_train[2], all_y_train[2], all_x_test[2], all_y_test[2] = get_data_from_folder(".\\SpeechFolder\\Noise", types[2],
+                                                                                        tts, max_data, (".wav"))
+
+    all_x_train[3], all_y_train[3], all_x_test[3], all_y_test[3] = get_data_from_folder(".\\SpeechFolder\\ImpureSpeech", types[3],
+                                                                                        tts, max_data, (".wav"))
     x_train = np.empty((0, extractor.tot_features), float)
-    y_train = np.empty((0, 1), float)
+    y_train = np.empty((0, 1), str)
     x_test = np.empty((0, extractor.tot_features), float)
-    y_test = np.empty((0, 1), float)
+    y_test = np.empty((0, 1), str)
     for i in range(len(all_x_train)):
         x_train = np.append(x_train, all_x_train[i], axis=0)
         y_train = np.append(y_train, all_y_train[i], axis=0)
@@ -109,6 +113,9 @@ if __name__ == "__main__":
     print(pred)
     print(y_test.flatten())
     sc = rf.score(x_test, y_test.flatten())
-    print(sc)
+    print("Accuracy: %f" % sc)
+
+    cf = confusion_matrix(y_test, pred, labels=['p', 'm', 'n', 'i'], )
+    print(cf)
 
 
