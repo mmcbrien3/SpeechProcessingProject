@@ -4,7 +4,7 @@ import scipy as sp
 
 class FeatureExtractor(object):
 
-    tot_features = 4 * 2 + 12 * 2
+    tot_features = 5 * 2 + 12 * 2
     def __init__(self):
         pass
 
@@ -26,6 +26,7 @@ class FeatureExtractor(object):
         features.extend(self.get_mel_freq_cepstral_coeffs(subclips))
         features.extend(self.get_spectral_centroid(subclips))
         features.extend(self.get_spectral_flux(subclips))
+        features.extend(self.get_bandwidith(subclips))
         return features
 
     def get_energy(self, subclips):
@@ -110,4 +111,22 @@ class FeatureExtractor(object):
             prev_fft = cur_fft
 
         return [np.mean(sfs), np.std(sfs)]
+
+    def get_bandwidith(self, subclips):
+        bdubs = np.zeros(len(subclips))
+        epsilon = 0.05
+        for i in range(len(subclips)):
+            cur_fft = np.abs(np.fft.fft(subclips[i]))[1:int(len(subclips[i])/2)]
+            freqs = np.fft.fftfreq(len(subclips[i]))[1:int(len(subclips[i])/2)]
+            tot_fft = np.sum(np.square(cur_fft))
+            min_val = tot_fft * epsilon
+            try:
+                min_i = np.argmax(cur_fft>min_val)
+                max_i = np.where(cur_fft>min_val)[0][-1]
+            except:
+                min_i = 0
+                max_i = len(freqs) - 1
+            bdubs[i] = freqs[max_i]*8000 - freqs[min_i]*8000
+
+        return [np.mean(bdubs), np.std(bdubs)]
 
