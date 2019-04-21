@@ -4,6 +4,8 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix
+from RealWorldTester import RealWorldTester
+from joblib import dump, load
 import sys, os
 from matplotlib import pyplot as plt
 types = ["pure_speech", "music", "noise", "impure_speech", "silence"]
@@ -77,8 +79,8 @@ def standardize_data(x_train, x_test):
     return x_train, x_test
 
 def test_classifier(clf, x_test, y_test):
-    pred = rf.predict(x_test)
-    sc = rf.score(x_test, y_test.flatten())
+    pred = clf.predict(x_test)
+    sc = clf.score(x_test, y_test.flatten())
     cf = confusion_matrix(y_test, pred, labels=['p', 'm', 'n', 'i', 's'], )
     cf = np.asarray(cf, dtype="float32")
     for i in range(len(types)):
@@ -126,17 +128,22 @@ if __name__ == "__main__":
         x_test = np.append(x_test, all_x_test[i], axis=0)
         y_test = np.append(y_test, all_y_test[i], axis=0)
 
-    x_train, x_test = standardize_data(x_train, x_test)
+    #x_train, x_test = standardize_data(x_train, x_test)
     print(x_train)
     print(y_test)
     rf = RandomForestClassifier(n_estimators=1000)
     svm_clf = SVC()
     rf.fit(x_train, y_train.flatten())
-    svm_clf.fit(x_train, y_train)
+    svm_clf.fit(x_train, y_train.flatten())
 
     test_classifier(rf, x_test, y_test)
     test_classifier(svm_clf, x_test, y_test)
 
+    dump(rf, ".//" + type(rf).__name__ + "_classifier.joblib")
+    dump(svm_clf, ".//" + type(svm_clf).__name__ + "_classifier.joblib")
+
+    rwt = RealWorldTester(".//SpeechFolder//Brief_Test", rf)
+    rwt.plot_classification()
 
 
 

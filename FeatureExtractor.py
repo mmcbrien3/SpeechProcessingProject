@@ -126,7 +126,7 @@ class FeatureExtractor(object):
             except:
                 min_i = 0
                 max_i = len(freqs) - 1
-            bdubs[i] = freqs[max_i]*8000 - freqs[min_i]*8000
+            bdubs[i] = freqs[max_i] - freqs[min_i]
 
         return [np.mean(bdubs), np.std(bdubs)]
 
