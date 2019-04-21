@@ -2,6 +2,7 @@ from FileHandler import FileHandler
 from FeatureExtractor import FeatureExtractor
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix
 import sys, os
 from matplotlib import pyplot as plt
@@ -65,6 +66,30 @@ def get_data_from_folder(folder, classification, train_p, total_amount, valid_ex
 
     return x_train, y_train, x_test, y_test
 
+def standardize_data(x_train, x_test):
+    mus = np.mean(x_train, axis=0)
+    sigmas = np.mean(x_train, axis=0)
+
+    for i in range(len(mus)):
+        x_train[:, i] = (x_train[:, i] - mus[i]) / sigmas[i]
+        x_test[:, i] = (x_test[:, i] - mus[i]) / sigmas[i]
+
+    return x_train, x_test
+
+def test_classifier(clf, x_test, y_test):
+    pred = rf.predict(x_test)
+    sc = rf.score(x_test, y_test.flatten())
+    cf = confusion_matrix(y_test, pred, labels=['p', 'm', 'n', 'i', 's'], )
+    cf = np.asarray(cf, dtype="float32")
+    for i in range(len(types)):
+        cf[i, :] = cf[i, :] / np.sum(cf, axis=1)[i]
+    print("Results for the %s classifier" % type(clf).__name__)
+
+    print(pred)
+    print(y_test.flatten())
+    print("Accuracy: %f" % sc)
+    print(cf)
+
 if __name__ == "__main__":
 
     extractor = FeatureExtractor()
@@ -101,28 +126,19 @@ if __name__ == "__main__":
         x_test = np.append(x_test, all_x_test[i], axis=0)
         y_test = np.append(y_test, all_y_test[i], axis=0)
 
+    x_train, x_test = standardize_data(x_train, x_test)
     print(x_train)
     print(y_test)
     rf = RandomForestClassifier(n_estimators=1000)
+    svm_clf = SVC()
     rf.fit(x_train, y_train.flatten())
+    svm_clf.fit(x_train, y_train)
 
-    fhT = FileHandler(".\\SpeechFolder\\TEST")
-    fhT.set_file_extensions((".wav"))
-    fhT.create_all_file_list()
-    fhT.split_train_test()
+    test_classifier(rf, x_test, y_test)
+    test_classifier(svm_clf, x_test, y_test)
 
-    pred = rf.predict(x_test)
 
-    print(pred)
-    print(y_test.flatten())
-    sc = rf.score(x_test, y_test.flatten())
-    print("Accuracy: %f" % sc)
 
-    cf = confusion_matrix(y_test, pred, labels=['p', 'm', 'n', 'i', 's'], )
-    print(cf)
-    cf = np.asarray(cf, dtype="float32")
-    for i in range(len(types)):
-        cf[i, :] = cf[i, :]/np.sum(cf, axis=1)[i]
-    print(cf)
+
 
 
