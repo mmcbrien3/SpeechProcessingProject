@@ -49,13 +49,28 @@ class FileHandler(object):
         raw = signal.resample(raw,num=num_samples)
         return raw
 
-    def file_to_clips(self, audiofile):
+    def file_to_clips(self, audiofile, overlap=False):
+        if overlap:
+            return self.file_to_clips_overlap(audiofile)
         raw = self.resample(audiofile, self.sr)
-        num_clips = int(np.floor(len(raw)/self.sr))
+        num_clips = int(np.floor(len(raw) / self.sr))
         clips = np.zeros((num_clips, self.sr))
         if len(raw.shape) > 1:
             raw = raw[:, 0]
         for i in range(num_clips):
-            clips[i][:] = raw[i*self.sr:(i+1)*self.sr]
+            st = round(i * self.sr)
+            en = round((i + 1)*self.sr)
+            clips[i][:] = raw[st:en]
         return clips
 
+    def file_to_clips_overlap(self, audiofile):
+        raw = self.resample(audiofile, self.sr)
+        num_clips = round(len(raw) / self.sr / 0.5 - 1)
+        clips = np.zeros((num_clips, self.sr))
+        if len(raw.shape) > 1:
+            raw = raw[:, 0]
+        for i in range(num_clips):
+            st = round(i/2 * self.sr)
+            en = round((i/2 + 1)*self.sr)
+            clips[i][:] = raw[st:en]
+        return clips

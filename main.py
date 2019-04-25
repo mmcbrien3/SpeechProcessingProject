@@ -142,8 +142,8 @@ if __name__ == "__main__":
     dump(rf, ".//" + type(rf).__name__ + "_classifier.joblib")
     dump(svm_clf, ".//" + type(svm_clf).__name__ + "_classifier.joblib")
 
-    rwt = RealWorldTester(".//SpeechFolder//Brief_Test", rf)
-    rwt.plot_classification()
+    #rwt = RealWorldTester(".//SpeechFolder//Brief_Test", rf)
+    #rwt.plot_classification()
 
 
 

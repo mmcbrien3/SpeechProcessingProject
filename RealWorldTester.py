@@ -17,7 +17,7 @@ class RealWorldTester(object):
     def classify_clip(self):
         y = []
         for tf in self.file_handler.train_files:
-            cur_clips = self.file_handler.file_to_clips(tf)
+            cur_clips = self.file_handler.file_to_clips(tf, overlap=True)
             for clip in cur_clips:
                 self.extractor.set_clip(clip)
                 features = np.reshape(self.extractor.extract(), (1, -1))
@@ -60,11 +60,10 @@ class RealWorldTester(object):
         plt.plot(music, [2] * len(music), 'ro')
         plt.plot(im_sp, [3] * len(im_sp), 'bo')
         plt.plot(p_sp, [4] * len(p_sp), 'go')
-
         plt.show()
 
 
 if __name__ == "__main__":
     clf = load(".//RandomForestClassifier_classifier.joblib",)
-    rwt = RealWorldTester(".//SpeechFolder//Brief_Test", clf)
+    rwt = RealWorldTester(".//SpeechFolder//TEST/Brief_Test", clf)
     rwt.plot_classification()

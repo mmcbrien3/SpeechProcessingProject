@@ -4,7 +4,7 @@ import scipy as sp
 
 class FeatureExtractor(object):
 
-    tot_features = 5 * 2 + 12 * 2
+    tot_features = 5 * 2 + 12 * 2 + 4
     def __init__(self):
         pass
 
@@ -27,6 +27,7 @@ class FeatureExtractor(object):
         features.extend(self.get_spectral_centroid(subclips))
         features.extend(self.get_spectral_flux(subclips))
         features.extend(self.get_bandwidith(subclips))
+        features.extend(self.get_harmonic_ratio_pitch(subclips))
         return features
 
     def get_energy(self, subclips):
@@ -42,7 +43,7 @@ class FeatureExtractor(object):
         zcs = np.zeros(len(subclips))
         count = 0
         for sc in subclips:
-            zcs[count] = np.size(np.where(np.diff(np.sign(sc)))[0])
+            zcs[count] = np.size(np.where(np.diff(np.sign(sc)))[0]) / len(zcs)
             count = count + 1
 
         return [np.mean(zcs), np.std(zcs)]
@@ -130,3 +131,46 @@ class FeatureExtractor(object):
 
         return [np.mean(bdubs), np.std(bdubs)]
 
+    def get_harmonic_ratio_pitch(self, subclips):
+        hrs = np.zeros(len(subclips))
+        ps = np.zeros(len(subclips))
+        epsilon = 0.0000001
+        for i in range(len(subclips)):
+            M = int(np.round(0.016 * 8000) - 1)
+            R = np.correlate(subclips[i], subclips[i], mode="full")
+            g = R[len(subclips[i])-1]
+            R = R[len(subclips[i]):-1]
+            ss = np.sign(R)
+            [a, ] = np.nonzero(np.diff(ss))
+            if len(a) == 0:
+                m0 = len(R) - 1
+            else:
+                m0 = a[0]
+            if M > len(R):
+                M = len(R) - 1
+            Gamma = np.zeros((M), dtype=np.float64)
+            CSum = np.cumsum(subclips[i] ** 2)
+            Gamma[m0:M] = R[m0:M] / (np.sqrt((g * CSum[M:m0:-1])) + epsilon)
+            zcr = np.size(np.where(np.diff(np.sign(subclips[i])))[0]) / len(subclips[i])
+            if zcr > 0.15:
+                HR = 0.0
+                f0 = 0.0
+            else:
+                if len(Gamma) == 0:
+                    HR = 1.0
+                    blag = 0.0
+                    Gamma = np.zeros((M), dtype=np.float64)
+                else:
+                    HR = np.max(Gamma)
+                    blag = np.argmax(Gamma)
+
+                f0 = 8000 / (blag + epsilon)
+                if f0 > 5000:
+                    f0 = 0.0
+                if HR < 0.1:
+                    f0 = 0.0
+
+            hrs[i] = HR
+            ps[i] = f0
+
+        return [np.mean(hrs), np.std(hrs), np.mean(ps), np.std(ps)]
