@@ -3,6 +3,8 @@ from FeatureExtractor import FeatureExtractor
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
+from sklearn import preprocessing
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix
 from RealWorldTester import RealWorldTester
 from joblib import dump, load
@@ -69,13 +71,9 @@ def get_data_from_folder(folder, classification, train_p, total_amount, valid_ex
     return x_train, y_train, x_test, y_test
 
 def standardize_data(x_train, x_test):
-    mus = np.mean(x_train, axis=0)
-    sigmas = np.mean(x_train, axis=0)
-
-    for i in range(len(mus)):
-        x_train[:, i] = (x_train[:, i] - mus[i]) / sigmas[i]
-        x_test[:, i] = (x_test[:, i] - mus[i]) / sigmas[i]
-
+    ss = preprocessing.StandardScaler().fit(x_train)
+    x_train = ss.transform(x_train)
+    x_test = ss.transform(x_test)
     return x_train, x_test
 
 def test_classifier(clf, x_test, y_test):
@@ -128,19 +126,23 @@ if __name__ == "__main__":
         x_test = np.append(x_test, all_x_test[i], axis=0)
         y_test = np.append(y_test, all_y_test[i], axis=0)
 
-    #x_train, x_test = standardize_data(x_train, x_test)
+    x_train, x_test = standardize_data(x_train, x_test)
     print(x_train)
     print(y_test)
     rf = RandomForestClassifier(n_estimators=1000)
-    svm_clf = SVC()
+    svm_clf = SVC(C=10)
+    knn = KNeighborsClassifier(n_neighbors=20)
     rf.fit(x_train, y_train.flatten())
     svm_clf.fit(x_train, y_train.flatten())
+    knn.fit(x_train, y_train.flatten())
 
     test_classifier(rf, x_test, y_test)
     test_classifier(svm_clf, x_test, y_test)
+    test_classifier(knn, x_test, y_test)
 
     dump(rf, ".//" + type(rf).__name__ + "_classifier.joblib")
     dump(svm_clf, ".//" + type(svm_clf).__name__ + "_classifier.joblib")
+    dump(knn, ".//" + type(knn).__name__ + "_classifier.joblib")
 
     #rwt = RealWorldTester(".//SpeechFolder//Brief_Test", rf)
     #rwt.plot_classification()
