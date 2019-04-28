@@ -28,6 +28,7 @@ class FeatureExtractor(object):
         features.extend(self.get_spectral_flux(subclips))
         features.extend(self.get_bandwidith(subclips))
         features.extend(self.get_harmonic_ratio_pitch(subclips))
+        #self.get_lpc_coeffs(subclips)
         return features
 
     def get_energy(self, subclips):
@@ -174,3 +175,37 @@ class FeatureExtractor(object):
             ps[i] = f0
 
         return [np.mean(hrs), np.std(hrs), np.mean(ps), np.std(ps)]
+
+    def get_lpc_coeffs(self, subclips):
+        order = 4
+        lpcs = np.zeros((len(subclips), order+1))
+
+        for i in range(len(subclips)):
+            sc = subclips[i]
+            ac = np.correlate(sc, sc, mode='full')
+            max_ac = np.argmax(ac)
+            ac = ac[max_ac:]
+            E = np.zeros(order)
+            E[1] = ac[1]
+            k = np.zeros((1, order))
+            alpha = np.zeros((order, order))
+            for i in range(0, order):
+                summation = 0
+                for m in range(0, i-1):
+                    summation = summation + alpha[i - 1, m] * ac[i - m + 1]
+                k_i = (ac[i + 1] - summation) / E[i]
+                k[i] = k_i
+                for j in range(0, i-1):
+                    alpha[i, j] = alpha[i-1, j] - k_i * alpha[i-1, j-1]
+                alpha[i, i] = k_i
+                E[i + 1] = (1 - k_i ** 2) * E[i]
+
+            summation = 0
+            for i in range(0, order):
+                summation = summation + alpha[order, i] * ac[i + 1]
+            G = np.sqrt(ac[1] - summation)
+            alpha = alpha * -1
+            lpcs[i][:] = [alpha[order][:], G]
+
+        print(lpcs)
+

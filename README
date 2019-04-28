@@ -13,13 +13,14 @@ Project:
     Extract Features:
         Energy X
         Zero Crossing Rate X
-        MFCC
-        Brightness
-        Bandwidth
+        MFCC X
+        Spectral Centroid X
+        Bandwidth X
+        Harmonic Ratio X
+        Pitch X
         Pitched Ratio
-        Spectrum Flux
+        Spectrum Flux X
         Low-Order LPCs
-        Others
 
     Save Classifier so retraining is not required
 

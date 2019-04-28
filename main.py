@@ -74,6 +74,7 @@ def standardize_data(x_train, x_test):
     ss = preprocessing.StandardScaler().fit(x_train)
     x_train = ss.transform(x_train)
     x_test = ss.transform(x_test)
+    dump(ss, "standardizer.joblib")
     return x_train, x_test
 
 def test_classifier(clf, x_test, y_test):
@@ -143,7 +144,6 @@ if __name__ == "__main__":
     dump(rf, ".//" + type(rf).__name__ + "_classifier.joblib")
     dump(svm_clf, ".//" + type(svm_clf).__name__ + "_classifier.joblib")
     dump(knn, ".//" + type(knn).__name__ + "_classifier.joblib")
-
     #rwt = RealWorldTester(".//SpeechFolder//Brief_Test", rf)
     #rwt.plot_classification()
 

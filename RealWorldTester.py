@@ -5,8 +5,9 @@ import matplotlib.pyplot as plt
 from joblib import load
 class RealWorldTester(object):
 
-    def __init__(self, fileloc, clf):
+    def __init__(self, fileloc, clf, ss=None):
         self.clf = clf
+        self.standardizer = ss
         self.file_loc = fileloc
         self.file_handler = FileHandler(self.file_loc)
         self.file_handler.set_file_extensions((".wav"))
@@ -17,10 +18,11 @@ class RealWorldTester(object):
     def classify_clip(self):
         y = []
         for tf in self.file_handler.train_files:
-            cur_clips = self.file_handler.file_to_clips(tf, overlap=True)
+            cur_clips = self.file_handler.file_to_clips(tf, overlap=False)
             for clip in cur_clips:
                 self.extractor.set_clip(clip)
                 features = np.reshape(self.extractor.extract(), (1, -1))
+                features = self.standardizer.transform(features)
                 pred = self.clf.predict(features)
                 y.append(pred[0])
 
@@ -60,10 +62,13 @@ class RealWorldTester(object):
         plt.plot(music, [2] * len(music), 'ro')
         plt.plot(im_sp, [3] * len(im_sp), 'bo')
         plt.plot(p_sp, [4] * len(p_sp), 'go')
+        plt.yticks([0, 1, 2, 3, 4], ['silence', 'noise', 'music', 'impure speech', 'pure speech'])
         plt.show()
 
 
 if __name__ == "__main__":
-    clf = load(".//RandomForestClassifier_classifier.joblib",)
-    rwt = RealWorldTester(".//SpeechFolder//TEST/Brief_Test", clf)
+    clf = load("./SVC_classifier.joblib",)
+    ss = load(".//standardizer.joblib")
+    rwt = RealWorldTester(".//SpeechFolder//TEST/Brief_Test", clf, ss)
+
     rwt.plot_classification()
