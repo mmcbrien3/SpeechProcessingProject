@@ -13,6 +13,7 @@ class FileHandler(object):
         self.all_files = []
         self.train_files = []
         self.test_files = []
+        self.must_train = []
         self.train_percent = training_percent
         self.sr = 8000
 
@@ -26,12 +27,17 @@ class FileHandler(object):
         for r, subdirs, files in os.walk(self.root):
             for c_file in files:
                 if self.check_file_extension(c_file):
-                    self.all_files.append(os.path.join(r, c_file))
+                    if "must_train" in r:
+                        self.must_train.append(os.path.join(r, c_file))
+                    else:
+                        self.all_files.append(os.path.join(r, c_file))
+
 
     def split_train_test(self):
         random.shuffle(self.all_files)
         total_train = round(self.train_percent * len(self.all_files))
-        self.train_files = self.all_files[0:total_train]
+        self.train_files = self.must_train[:]
+        self.train_files.extend(self.all_files[0:total_train])
         self.test_files = self.all_files[total_train:]
 
     def get_type(self, f):
@@ -45,18 +51,18 @@ class FileHandler(object):
     def resample(self, audiofile, new_fs):
         fs, raw = wavfile.read(audiofile)
         raw = raw / (2**15 - 1)
+        if len(raw.shape) > 1:
+            raw = (raw[:, 0] + raw[:, 1]) / 2
         num_samples = round(new_fs/fs*len(raw))
         raw = signal.resample(raw,num=num_samples)
         return raw
 
-    def file_to_clips(self, audiofile, overlap=False):
-        if overlap:
+    def file_to_clips(self, audiofile, short=False):
+        if short:
             return self.file_to_clips_overlap(audiofile)
         raw = self.resample(audiofile, self.sr)
         num_clips = int(np.floor(len(raw) / self.sr))
         clips = np.zeros((num_clips, self.sr))
-        if len(raw.shape) > 1:
-            raw = raw[:, 0]
         for i in range(num_clips):
             st = round(i * self.sr)
             en = round((i + 1)*self.sr)
@@ -64,13 +70,13 @@ class FileHandler(object):
         return clips
 
     def file_to_clips_overlap(self, audiofile):
+        subframes_per_clip = 20
         raw = self.resample(audiofile, self.sr)
-        num_clips = round(len(raw) / self.sr / 0.5 - 1)
-        clips = np.zeros((num_clips, self.sr))
-        if len(raw.shape) > 1:
-            raw = raw[:, 0]
+        percentage = (subframes_per_clip / 40)
+        num_clips = round(len(raw) / self.sr / percentage)
+        clips = np.zeros((num_clips, int(self.sr * percentage)))
         for i in range(num_clips):
-            st = round(i/2 * self.sr)
-            en = round((i/2 + 1)*self.sr)
+            st = round(i*percentage * self.sr)
+            en = round((i+1)*percentage*self.sr)
             clips[i][:] = raw[st:en]
         return clips

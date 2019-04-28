@@ -4,7 +4,7 @@ import scipy as sp
 
 class FeatureExtractor(object):
 
-    tot_features = 5 * 2 + 12 * 2 + 4
+    tot_features = 5 * 2 + 12 * 2 + 4 #+ (4+1)*2
     def __init__(self):
         pass
 
@@ -28,7 +28,7 @@ class FeatureExtractor(object):
         features.extend(self.get_spectral_flux(subclips))
         features.extend(self.get_bandwidith(subclips))
         features.extend(self.get_harmonic_ratio_pitch(subclips))
-        #self.get_lpc_coeffs(subclips)
+        #features.extend(self.get_lpc_coeffs(subclips))
         return features
 
     def get_energy(self, subclips):
@@ -180,32 +180,37 @@ class FeatureExtractor(object):
         order = 4
         lpcs = np.zeros((len(subclips), order+1))
 
-        for i in range(len(subclips)):
-            sc = subclips[i]
+        for s in range(len(subclips)):
+            sc = subclips[s]
             ac = np.correlate(sc, sc, mode='full')
             max_ac = np.argmax(ac)
             ac = ac[max_ac:]
-            E = np.zeros(order)
-            E[1] = ac[1]
-            k = np.zeros((1, order))
+            E = np.zeros(order+1)
+            E[0] = ac[0]
+            k = np.zeros(order)
             alpha = np.zeros((order, order))
             for i in range(0, order):
                 summation = 0
-                for m in range(0, i-1):
+                for m in range(0, i):
                     summation = summation + alpha[i - 1, m] * ac[i - m + 1]
                 k_i = (ac[i + 1] - summation) / E[i]
                 k[i] = k_i
-                for j in range(0, i-1):
+                for j in range(0, i):
                     alpha[i, j] = alpha[i-1, j] - k_i * alpha[i-1, j-1]
                 alpha[i, i] = k_i
                 E[i + 1] = (1 - k_i ** 2) * E[i]
 
             summation = 0
             for i in range(0, order):
-                summation = summation + alpha[order, i] * ac[i + 1]
-            G = np.sqrt(ac[1] - summation)
+                summation = summation + alpha[order-1, i] * ac[i + 1]
+            G = np.sqrt(ac[0] - summation + 0j)
             alpha = alpha * -1
-            lpcs[i][:] = [alpha[order][:], G]
-
-        print(lpcs)
+            cur_out = np.append(alpha[order-1][:], G)
+            lpcs = np.real(lpcs)
+            lpcs[s][:] = cur_out
+        out = np.zeros((order+1)*2)
+        for i in range(order + 1):
+            out[i*2] = np.mean(lpcs[i])
+            out[i*2 + 1] = np.std(lpcs[i])
+        return out
 

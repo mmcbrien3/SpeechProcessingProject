@@ -1,33 +1,10 @@
-Things to do:
+The zipped Speech Folder must be unzipped before running anything.
 
-Project:
-    Collect Data:
-        Pure Speech X
-        Music
-        Speech + Other
-        Background Noise
-        Silence
+Running main.py will extract all of the features from our data and train the three classifiers
+(SVC, K-Nearest Neighbors, Random Forest Classifier).
 
-    Convert Data to frames/subframes X
+This process will store the trained classifiers in joblibs. Additionally, the features extracted and labels will be
+stored in csv files so that the entire feature extraction does not need to be performed once again.
 
-    Extract Features:
-        Energy X
-        Zero Crossing Rate X
-        MFCC X
-        Spectral Centroid X
-        Bandwidth X
-        Harmonic Ratio X
-        Pitch X
-        Pitched Ratio
-        Spectrum Flux X
-        Low-Order LPCs
-
-    Save Classifier so retraining is not required
-
-    Test Classifier:
-        Choose a few mixed files to test on (audio of newscast could work well)
-        Plot results (play audio and display result of classifier simultaneously)
-
-
-Presentation:
-    Make Presentation
+Running RealWorldTester.py will perform classification and rearrangement of whatever .wav file is in the folder
+SpeechFolder/Test/BriefTest (this is currently the introduction to "Our Song").
